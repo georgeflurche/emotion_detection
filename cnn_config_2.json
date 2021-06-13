@@ -1,0 +1,12 @@
+{
+    "dnn_type": "CNN",
+    "training_epochs": 1000,
+    "dataset_path": "$PROJ_DIR/filtered_data",
+    "training_weight": 0.8,
+    "test_weight": 0.2,
+    "nof_conv_layers": 2,
+    "nof_dimensions": 2,
+    "normalize": true,
+    "seed": 5,
+    "cross_validate": false
+}
