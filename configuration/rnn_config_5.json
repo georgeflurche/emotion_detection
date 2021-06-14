@@ -1,0 +1,17 @@
+{
+    "dnn_type": "RNN",
+    "architecture": "GRU",
+    "units": 128,
+    "training_epochs": 200,
+    "dataset_path": "$PROJ_DIR/filtered_data",
+    "training_weight": 0.8,
+    "test_weight": 0.2,
+    "nof_conv_layers": 1,
+    "nof_dimensions": 2,
+    "normalize": false,
+    "seed": 1,
+    "cross_validate": true,
+    "num_folds": 20,
+    "early_stop": 50,
+    "show_confusion_matrix": true
+}

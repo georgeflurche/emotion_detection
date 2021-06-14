@@ -11,6 +11,7 @@
     "normalize": false,
     "seed": 1,
     "cross_validate": true,
+    "num_folds": 20,
     "early_stop": 50,
     "show_confusion_matrix": true
 }
