@@ -348,6 +348,17 @@ if __name__ == "__main__":
         log_dir=log_dir,
         histogram_freq=1)
 
+
+    model = config.get_architecture(input_shape)
+    model.summary()
+    model.compile(
+        optimizer='adam',
+        loss=tf.keras.losses.CategoricalCrossentropy(
+            from_logits=False,
+            label_smoothing=0,
+            reduction="auto",
+            name="categorical_crossentropy"),
+        metrics=['accuracy'])
     if config.cross_validate:
         inputs = np.concatenate((X_train, X_test), axis=0)
         targets = np.concatenate((y_train, y_test), axis=0)
@@ -358,17 +369,8 @@ if __name__ == "__main__":
         for train, test in kfold.split(inputs, targets):
             initial_epoch = ecoef*fold_no + 1
             epochs = ecoef * (fold_no+1)
-            model = config.get_architecture(input_shape)
-            _logger.info(f'Training for fold {fold_no+1} ...')
-            model.compile(
-                optimizer='adam',
-                loss=tf.keras.losses.CategoricalCrossentropy(
-                    from_logits=False,
-                    label_smoothing=0,
-                    reduction="auto",
-                    name="categorical_crossentropy"),
-                metrics=['accuracy'])
 
+            _logger.info(f'Training for fold {fold_no+1} ...')
             history = model.fit(
                 inputs[train], targets[train], initial_epoch=initial_epoch,
                 epochs=epochs, validation_data=(inputs[test], targets[test]),
@@ -381,17 +383,6 @@ if __name__ == "__main__":
                      f'{model.metrics_names[1]}: {round(scores[1], 4)}')
 
     else:
-        model = config.get_architecture(input_shape)
-        model.summary()
-        model.compile(
-            optimizer='adam',
-            loss=tf.keras.losses.CategoricalCrossentropy(
-                from_logits=False,
-                label_smoothing=0,
-                reduction="auto",
-                name="categorical_crossentropy"),
-            metrics=['accuracy'])
-
         history = model.fit(
             X_train, y_train, epochs=config.training_epochs,
             validation_data=(X_test, y_test), callbacks=[tensorboard_callback])
