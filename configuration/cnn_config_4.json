@@ -8,5 +8,7 @@
     "nof_dimensions": 3,
     "normalize": true,
     "seed": 1,
-    "cross_validate": false
+    "cross_validate": false,
+    "early_stop": 50,
+    "show_confusion_matrix": true
 }

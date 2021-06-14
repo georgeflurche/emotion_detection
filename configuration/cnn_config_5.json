@@ -9,5 +9,7 @@
     "normalize": true,
     "seed": 1,
     "cross_validate": true,
-    "num_folds": 10
+    "num_folds": 10,
+    "early_stop": null,
+    "show_confusion_matrix": true
 }

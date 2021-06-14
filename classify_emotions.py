@@ -14,8 +14,10 @@ import tensorflow as tf
 from datetime import datetime
 from tensorflow.keras import datasets, layers, models
 from sklearn.model_selection import KFold
+from sklearn.metrics import confusion_matrix
 from enum import Enum, unique
 import random as rnd
+import seaborn
 import matplotlib.pyplot as plt
 from data_interact import *
 
@@ -309,10 +311,10 @@ class TrainConfig:
                 sys.exit(1)
         else:
             if config.nof_dimensions == 2:
-                architecture.add(layers.Dense(
-                    64, activation='relu', input_shape=input_shape))
-                architecture.add(layers.Dense(64, activation='relu'))
-                architecture.add(layers.Dense(3, activation='softmax'))
+                architecture.add(layers.InputLayer(input_shape=input_shape))
+                architecture.add(layers.GRU(256, return_sequences=True))
+                architecture.add(layers.Flatten())
+                architecture.add(layers.Dense(3))
             else:
                 _logger.error(
                     f'Unimplemented architecture for {config.nof_dimensions} '
@@ -346,7 +348,15 @@ if __name__ == "__main__":
             X_train = X_train.reshape(x_tr_l, x_tr_w, x_tr_d, 1)
             X_test = X_test.reshape(x_ts_l, x_ts_w, x_ts_d, 1)
     else:
-       input_shape = X_train.shape[1:]   
+         if config.nof_dimensions == 2:
+             x_tr_l, x_tr_w = X_train.shape
+             x_ts_l, x_ts_w = X_test.shape
+             input_shape = (x_tr_w, 1)
+             X_train = X_train.reshape(x_tr_l, x_tr_w, 1)
+             X_test = X_test.reshape(x_ts_l, x_ts_w, 1)
+         else:
+             input_shape = X_train.shape[1:]
+
 
     # Change the output vector into binary class matrix
     y_train = tf.keras.utils.to_categorical(
@@ -359,9 +369,19 @@ if __name__ == "__main__":
         f"logs/fit/{config.dnn_type}_{config.nof_dimensions}D_"
         f"{config.nof_conv_layers}_layers_{config.training_epochs}_epochs_" +
         dstr)
+
+    # Define callbacks for tensorflow
+    callbacks = list()
     tensorboard_callback = tf.keras.callbacks.TensorBoard(
-        log_dir=log_dir,
-        histogram_freq=1)
+        log_dir=log_dir)
+    callbacks.append(tensorboard_callback)
+    if config.early_stop is not None:
+        earlystop_callback = tf.keras.callbacks.EarlyStopping(
+            monitor='val_loss',
+            patience=config.early_stop,
+            restore_best_weights=True
+        )
+        callbacks.append(earlystop_callback)
 
     # Define the model
     model = config.get_architecture(input_shape)
@@ -391,7 +411,7 @@ if __name__ == "__main__":
             history = model.fit(
                 inputs[train], targets[train], initial_epoch=initial_epoch,
                 epochs=epochs, validation_data=(inputs[test], targets[test]),
-                callbacks=[tensorboard_callback])
+                callbacks=callbacks)
             fold_no += 1
 
         scores = model.evaluate(X_test, y_test, verbose=0)
@@ -402,4 +422,19 @@ if __name__ == "__main__":
     else:
         history = model.fit(
             X_train, y_train, epochs=config.training_epochs,
-            validation_data=(X_test, y_test), callbacks=[tensorboard_callback])
+            validation_data=(X_test, y_test), callbacks=callbacks,
+            batch_size=64)
+
+    if config.show_confusion_matrix:
+        model_predictions = np.argmax(model.predict(X_test), axis=1)
+        y_test = np.argmax(y_test, axis=1)
+        conf_mat = confusion_matrix(y_test, model_predictions)
+        plt.figure()
+        seaborn.heatmap(conf_mat, annot=True, vmin=0, fmt='g', cbar=False, cmap='Blues')
+        plt.xticks(ticks=list(i+0.5 for i in range(3)),
+                   labels=list(i.name for i in Label))
+        plt.yticks(ticks=list(i+0.5 for i in range(3)),
+                   labels=list(i.name for i in Label))
+        plt.xlabel('Predicted Values')
+        plt.ylabel('Real Values')
+        plt.show()
