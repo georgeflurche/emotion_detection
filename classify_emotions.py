@@ -258,50 +258,66 @@ class TrainConfig:
 
     def get_architecture(self, input_shape):
         architecture = models.Sequential()
-        if config.nof_dimensions == 2 and config.nof_conv_layers == 1:
-            architecture.add(layers.Conv1D(
-                filters=32, kernel_size=3, activation='relu',
-                input_shape=input_shape))
-            architecture.add(layers.MaxPooling1D(pool_size=20))
-            architecture.add(layers.Flatten())
-            #architecture.add(layers.Dense(100, activation='relu'))
-            architecture.add(layers.Dense(3, activation='softmax'))
+        if config.dnn_type == 'CNN':
+            if config.nof_dimensions == 2 and config.nof_conv_layers == 1:
+                architecture.add(layers.Conv1D(
+                    filters=32, kernel_size=3, activation='relu',
+                    input_shape=input_shape))
+                architecture.add(layers.MaxPooling1D(pool_size=20))
+                architecture.add(layers.Flatten())
+                #architecture.add(layers.Dense(100, activation='relu'))
+                architecture.add(layers.Dense(3, activation='softmax'))
 
-        elif config.nof_dimensions == 2 and config.nof_conv_layers == 2:
-            architecture.add(layers.Conv1D(
-                filters=32, kernel_size=3, activation='relu',
-                input_shape=input_shape))
-            architecture.add(layers.MaxPooling1D(pool_size=20))
-            architecture.add(layers.Conv1D(
-                filters=64, kernel_size=6, activation='relu'))
-            architecture.add(layers.MaxPooling1D(pool_size=20))
-            architecture.add(layers.Dropout(0.25))
-            architecture.add(layers.Flatten())
-            architecture.add(layers.Dense(3, activation='softmax'))
+            elif config.nof_dimensions == 2 and config.nof_conv_layers == 2:
+                architecture.add(layers.Conv1D(
+                    filters=32, kernel_size=3, activation='relu',
+                    input_shape=input_shape))
+                architecture.add(layers.MaxPooling1D(pool_size=20))
+                architecture.add(layers.Conv1D(
+                    filters=64, kernel_size=6, activation='relu'))
+                architecture.add(layers.MaxPooling1D(pool_size=20))
+                architecture.add(layers.Dropout(0.25))
+                architecture.add(layers.Flatten())
+                architecture.add(layers.Dense(3, activation='softmax'))
 
-        elif config.nof_dimensions == 2 and config.nof_conv_layers == 3:
-            architecture.add(layers.Conv1D(
-                filters=32, kernel_size=3, activation='relu',
-                input_shape=input_shape))
-            architecture.add(layers.MaxPooling1D(pool_size=20))
-            architecture.add(layers.Conv1D(
-                filters=64, kernel_size=6, activation='relu'))
-            architecture.add(layers.MaxPooling1D(pool_size=20))
-            architecture.add(layers.Conv1D(
-                filters=64, kernel_size=3, activation='relu'))
-            architecture.add(layers.Dropout(0.35))
-            architecture.add(layers.Flatten())
-            architecture.add(layers.Dense(3, activation='softmax'))
+            elif config.nof_dimensions == 2 and config.nof_conv_layers == 3:
+                architecture.add(layers.Conv1D(
+                    filters=32, kernel_size=3, activation='relu',
+                    input_shape=input_shape))
+                architecture.add(layers.MaxPooling1D(pool_size=20))
+                architecture.add(layers.Conv1D(
+                    filters=64, kernel_size=6, activation='relu'))
+                architecture.add(layers.MaxPooling1D(pool_size=20))
+                architecture.add(layers.Conv1D(
+                    filters=64, kernel_size=3, activation='relu'))
+                architecture.add(layers.Dropout(0.35))
+                architecture.add(layers.Flatten())
+                architecture.add(layers.Dense(3, activation='softmax'))
 
-        elif config.nof_dimensions == 3 and config.nof_conv_layers == 1:
-             architecture.add(layers.Conv2D(
-                 filters=32, kernel_size=3, activation='relu',
-                 input_shape=input_shape))
-             architecture.add(layers.MaxPooling2D(pool_size=2))
-             architecture.add(layers.Dropout(0.35))
-             architecture.add(layers.Flatten())
-             architecture.add(layers.Dense(3, activation='softmax'))
-
+            elif config.nof_dimensions == 3 and config.nof_conv_layers == 1:
+                 architecture.add(layers.Conv2D(
+                     filters=32, kernel_size=3, activation='relu',
+                     input_shape=input_shape))
+                 architecture.add(layers.MaxPooling2D(pool_size=2))
+                 architecture.add(layers.Dropout(0.35))
+                 architecture.add(layers.Flatten())
+                 architecture.add(layers.Dense(3, activation='softmax'))
+            else:
+                _logger.error(
+                    f'Unimplemented architecture for {config.nof_dimensions} '
+                    f'dimensions and {config.nof_conv_layers} layers: CNN')
+                sys.exit(1)
+        else:
+            if config.nof_dimensions == 2:
+                architecture.add(layers.Dense(
+                    64, activation='relu', input_shape=input_shape))
+                architecture.add(layers.Dense(64, activation='relu'))
+                architecture.add(layers.Dense(3, activation='softmax'))
+            else:
+                _logger.error(
+                    f'Unimplemented architecture for {config.nof_dimensions} '
+                    f'dimensions and {config.nof_conv_layers} layers: RNN')
+                sys.exit(1)
         return architecture
 
 
@@ -315,24 +331,22 @@ if __name__ == "__main__":
     config = TrainConfig(args.config_file)
     _logger.info("Extracting network data")
     X_train, y_train, X_test, y_test= config.extract_filtered_network_data()
-    #X_train, y_train, X_test, y_test, channels = config.extract_network_data()
-    # config.plot_random_data(X_train, y_train, channels)
-    #_logger.info("Transforming data into numpy matrices")
-    #X_train, y_train, X_test, y_test = config.flatten_data(
-    #    X_train, y_train, X_test, y_test)
 
-    if config.nof_dimensions == 2:
-        x_tr_l, x_tr_w = X_train.shape
-        x_ts_l, x_ts_w = X_test.shape
-        input_shape = (x_tr_w, 1)
-        X_train = X_train.reshape(x_tr_l, x_tr_w, 1)
-        X_test = X_test.reshape(x_ts_l, x_ts_w, 1)
+    if config.dnn_type == 'CNN':
+        if config.nof_dimensions == 2:
+            x_tr_l, x_tr_w = X_train.shape
+            x_ts_l, x_ts_w = X_test.shape
+            input_shape = (x_tr_w, 1)
+            X_train = X_train.reshape(x_tr_l, x_tr_w, 1)
+            X_test = X_test.reshape(x_ts_l, x_ts_w, 1)
+        else:
+            x_tr_l, x_tr_w, x_tr_d = X_train.shape
+            x_ts_l, x_ts_w, x_ts_d = X_test.shape
+            input_shape = (x_tr_w, x_tr_d, 1)
+            X_train = X_train.reshape(x_tr_l, x_tr_w, x_tr_d, 1)
+            X_test = X_test.reshape(x_ts_l, x_ts_w, x_ts_d, 1)
     else:
-        x_tr_l, x_tr_w, x_tr_d = X_train.shape
-        x_ts_l, x_ts_w, x_ts_d = X_test.shape
-        input_shape = (x_tr_w, x_tr_d, 1)
-        X_train = X_train.reshape(x_tr_l, x_tr_w, x_tr_d, 1)
-        X_test = X_test.reshape(x_ts_l, x_ts_w, x_ts_d, 1)
+       input_shape = X_train.shape[1:]   
 
     # Change the output vector into binary class matrix
     y_train = tf.keras.utils.to_categorical(
@@ -342,13 +356,14 @@ if __name__ == "__main__":
 
     dstr= datetime.now().strftime("%Y%m%d-%H%M%S")
     log_dir = (
-        f"logs/fit/CNN_{config.nof_dimensions}D_{config.nof_conv_layers}_layers"
-        f"_{config.training_epochs}_epochs_" + dstr)
+        f"logs/fit/{config.dnn_type}_{config.nof_dimensions}D_"
+        f"{config.nof_conv_layers}_layers_{config.training_epochs}_epochs_" +
+        dstr)
     tensorboard_callback = tf.keras.callbacks.TensorBoard(
         log_dir=log_dir,
         histogram_freq=1)
 
-
+    # Define the model
     model = config.get_architecture(input_shape)
     model.summary()
     model.compile(
@@ -359,6 +374,8 @@ if __name__ == "__main__":
             reduction="auto",
             name="categorical_crossentropy"),
         metrics=['accuracy'])
+
+    # Train the model according to the config
     if config.cross_validate:
         inputs = np.concatenate((X_train, X_test), axis=0)
         targets = np.concatenate((y_train, y_test), axis=0)
