@@ -310,9 +310,14 @@ class TrainConfig:
                     f'dimensions and {config.nof_conv_layers} layers: CNN')
                 sys.exit(1)
         else:
-            if config.nof_dimensions == 2:
+            if config.architecture == 'GRU':
                 architecture.add(layers.InputLayer(input_shape=input_shape))
-                architecture.add(layers.GRU(256, return_sequences=True))
+                architecture.add(layers.GRU(config.units, return_sequences=True))
+                architecture.add(layers.Flatten())
+                architecture.add(layers.Dense(3))
+            elif config.architecture == "LSTM":
+                architecture.add(layers.InputLayer(input_shape=input_shape))
+                architecture.add(layers.LSTM(config.units))
                 architecture.add(layers.Flatten())
                 architecture.add(layers.Dense(3))
             else:

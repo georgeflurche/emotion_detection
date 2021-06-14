@@ -1,6 +1,7 @@
 {
     "dnn_type": "RNN",
     "architecture": "GRU",
+    "units": 256,
     "training_epochs": 100,
     "dataset_path": "$PROJ_DIR/filtered_data",
     "training_weight": 0.8,

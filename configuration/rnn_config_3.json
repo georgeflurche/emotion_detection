@@ -1,0 +1,16 @@
+{
+    "dnn_type": "RNN",
+    "architecture": "LSTM",
+    "units": 128,
+    "training_epochs": 50,
+    "dataset_path": "$PROJ_DIR/filtered_data",
+    "training_weight": 0.8,
+    "test_weight": 0.2,
+    "nof_conv_layers": 1,
+    "nof_dimensions": 2,
+    "normalize": true,
+    "seed": 1,
+    "cross_validate": false,
+    "early_stop": 50,
+    "show_confusion_matrix": false
+}
