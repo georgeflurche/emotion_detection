@@ -1,5 +1,5 @@
 {
-    "dnn_type": "CNN",
+    "dnn_type": "RNN",
     "architecture": "LSTM",
     "units": 128,
     "training_epochs": 200,
