@@ -312,7 +312,7 @@ class TrainConfig:
         else:
             if config.architecture == 'GRU':
                 architecture.add(layers.InputLayer(input_shape=input_shape))
-                architecture.add(layers.GRU(config.units, return_sequences=True))
+                architecture.add(layers.Dense(100, activation='relu'))
                 architecture.add(layers.Flatten())
                 architecture.add(layers.Dense(3))
             elif config.architecture == "LSTM":

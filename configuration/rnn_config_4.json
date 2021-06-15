@@ -1,5 +1,5 @@
 {
-    "dnn_type": "RNN",
+    "dnn_type": "CNN",
     "architecture": "LSTM",
     "units": 128,
     "training_epochs": 200,
@@ -7,7 +7,7 @@
     "training_weight": 0.8,
     "test_weight": 0.2,
     "nof_conv_layers": 1,
-    "nof_dimensions": 2,
+    "nof_dimensions": 3,
     "normalize": false,
     "seed": 1,
     "cross_validate": true,
